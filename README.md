@@ -231,6 +231,8 @@ Nginx config is like this;
     }
 ~~~
 When deploy nginx on openshift, use nginxinc/nginx-unprivileged image instead of nginx because of limited privileges.
+When you get an error because of unmatch claims(with 'aud'), use this reference.
+https://stackoverflow.com/questions/53550321/keycloak-gatekeeper-aud-claim-and-client-id-do-not-match/53627747#53627747
 ### Nginx reverse proxy
 From the plugin version 0.3.4, you can login Nexus3 using Keycloak as SSO (Single Sign On) provider.
 
