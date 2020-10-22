@@ -28,6 +28,11 @@ If something goes wrong when you upgraded the plugin to the new version.
 **DO NOT** save or update your configurations again, just go back to the old version and restart Nexus3,
 then [create](https://github.com/flytreeleft/nexus3-keycloak-plugin/issues/new) an issue to report your problem.
 
+## Docker image build
+~~~
+cd docker
+docker build -t josedevbunion/nexus:3.27.0-keycloak_plugin0.4.0 .
+~~~
 ## Development
 
 Read the details in [develop/README.md](./develop/README.md).
@@ -208,7 +213,25 @@ Then, enable the corresponding Keycloak authentication realm in Nexus3:
 Finally, you just need to map the new realm roles/groups to Nexus3 as the default one.
 
 ## Single Sign On (SSO)
+### keycloak gatekeeper
+Use https://github.com/louketo/louketo-proxy (keycloak gatekeepter).
+For the logout function, need to use nginx proxy behind the gatekeepter which do sub_filter for logout action against logout button.
+Because nexus logout button does not have url change.
+Nginx config is like this;
+~~~
+    server {
+      location / {
+          set $target http://127.0.0.1:8081;
+          set $oidc_logout_path /oauth/logout;
+          proxy_pass $target;
 
+          sub_filter '</body>' '<script type="text/javascript">(function inject_logout() { var dom = document.querySelectorAll("a[id^=\'nx-header-signout-\']")[0]; if (!dom) { setTimeout(inject_logout, 500); } else { dom.addEventListener("click", function (event) { event.stopPropagation(); window.location.href = "$oidc_logout_path"; }, true); }})();</script></body>';
+          sub_filter_once on;
+      }
+    }
+~~~
+When deploy nginx on openshift, use nginxinc/nginx-unprivileged image instead of nginx because of limited privileges.
+### Nginx reverse proxy
 From the plugin version 0.3.4, you can login Nexus3 using Keycloak as SSO (Single Sign On) provider.
 
 Before enable SSO, you need to put a reverse gateway (Nginx, Httpd etc.) before your Nexus3 server.
